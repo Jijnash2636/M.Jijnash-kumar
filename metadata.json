@@ -1,0 +1,7 @@
+{
+  "name": "Emergency Brain 360",
+  "description": "An AI-powered triage and diagnosis system that assists healthcare teams in real-time emergency prioritization by analyzing patient data and providing AI-generated explanations.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
