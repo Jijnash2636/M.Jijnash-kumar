@@ -9,14 +9,20 @@ interface SymptomChartProps {
 const COLORS = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#84cc16'];
 
 const SymptomChart: React.FC<SymptomChartProps> = ({ patients }) => {
-  const symptomCounts = patients.reduce<Record<string, number>>((acc, patient) => {
+  // Fix: Explicitly typing the accumulator `acc` in the reduce function ensures
+  // that `symptomCounts` is correctly typed as `Record<string, number>`.
+  // This allows TypeScript to correctly infer that `a` and `b` in the subsequent
+  // `.sort()` method are numbers, resolving the arithmetic operation error.
+  const symptomCounts = patients.reduce((acc: Record<string, number>, patient) => {
     const symptoms = patient.symptoms.split(',').map(s => s.trim().replace(/_/g, ' '));
     symptoms.forEach(symptom => {
       const capitalizedSymptom = symptom.charAt(0).toUpperCase() + symptom.slice(1);
       acc[capitalizedSymptom] = (acc[capitalizedSymptom] || 0) + 1;
     });
     return acc;
-  }, {});
+  // FIX: The initial value for reduce must be correctly typed. An untyped `{}` can lead to
+  // incorrect type inference for the accumulator, causing downstream errors.
+  }, {} as Record<string, number>);
   
   const sortedSymptoms = Object.entries(symptomCounts)
     .sort(([, a], [, b]) => b - a)

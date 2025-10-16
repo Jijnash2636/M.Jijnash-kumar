@@ -1,5 +1,8 @@
 
 export interface Patient {
+  id: number;
+  submission_timestamp: number;
+  status: 'ACTIVE' | 'DISCHARGED';
   patient_id: string;
   age: number;
   gender: string;

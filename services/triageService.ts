@@ -2,7 +2,7 @@
 import { Patient, PatientInput, UrgencyColor } from '../types';
 import { generateTriageSummaryAndRecommendation } from './geminiService';
 
-export const runTriage = async (input: PatientInput): Promise<Patient> => {
+export const runTriage = async (input: PatientInput): Promise<Omit<Patient, 'id' | 'submission_timestamp' | 'status'>> => {
     let score = 0;
 
     // Rule-based scoring from the provided logic
@@ -29,7 +29,7 @@ export const runTriage = async (input: PatientInput): Promise<Patient> => {
     const { recommendation, summary } = await generateTriageSummaryAndRecommendation(input, score, color);
     
     // Create a complete patient object. Some fields are placeholders as they aren't in the form.
-    const newPatient: Patient = {
+    const newPatient: Omit<Patient, 'id' | 'submission_timestamp' | 'status'> = {
         patient_id: input.patient_id,
         age: parseInt(input.age) || 0,
         gender: input.gender || 'Other',

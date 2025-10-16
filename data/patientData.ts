@@ -1,7 +1,7 @@
 
 import { Patient } from '../types';
 
-export const patientData: Patient[] = [
+export const patientData = [
   {
     "patient_id": "P0001",
     "age": 59,

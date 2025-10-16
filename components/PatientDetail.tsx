@@ -36,8 +36,30 @@ const AiExplanationCard: React.FC<{ title: string; onGenerate: () => Promise<str
   const [explanation, setExplanation] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [isSpeaking, setIsSpeaking] = React.useState(false);
+
+  // Effect to reset state when the patient context changes (proxied by onGenerate function changing)
+  React.useEffect(() => {
+    setExplanation('');
+    setError('');
+    setIsLoading(false);
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onGenerate]);
+
+  // Cleanup effect for when the component unmounts
+  React.useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   const handleGenerate = async () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+    }
     setIsLoading(true);
     setError('');
     setExplanation('');
@@ -50,11 +72,43 @@ const AiExplanationCard: React.FC<{ title: string; onGenerate: () => Promise<str
     }
     setIsLoading(false);
   };
+  
+  const handleToggleSpeak = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+    } else if (explanation) {
+      const plainText = explanation.replace(/<br\s*\/?>/gi, ' ');
+      const utterance = new SpeechSynthesisUtterance(plainText);
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = (event) => {
+        console.error('SpeechSynthesisUtterance.onerror', event);
+        setError('Could not play audio explanation.');
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   return (
     <div className="bg-slate-800/50 rounded-lg shadow-lg border border-slate-700/50 p-6">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold text-slate-200">{title}</h3>
+        <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-slate-200">{title}</h3>
+            {explanation && !isLoading && (
+                 <button 
+                    onClick={handleToggleSpeak} 
+                    className={`transition-colors ${isSpeaking ? 'text-sky-400' : 'text-slate-400 hover:text-sky-400'}`}
+                    aria-label={isSpeaking ? 'Stop reading aloud' : 'Read explanation aloud'}
+                 >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isSpeaking ? 'animate-pulse' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9.474 3.235a.75.75 0 01.696-.035l6.25 4.25a.75.75 0 010 1.099l-6.25 4.25a.75.75 0 01-1.196-.55V3.785a.75.75 0 01.5-.55zM3 5.75A.75.75 0 013.75 5h1.5a.75.75 0 01.75.75v8.5a.75.75 0 01-.75.75h-1.5A.75.75 0 013 14.25v-8.5z" />
+                    </svg>
+                 </button>
+            )}
+        </div>
         <button onClick={handleGenerate} disabled={isLoading} className="bg-sky-600 hover:bg-sky-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center text-sm">
           {isLoading ? (
             <>
